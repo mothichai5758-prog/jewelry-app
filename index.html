@@ -187,7 +187,7 @@
       tr.className = "hover:bg-slate-50 transition";
       tr.innerHTML = `
         <td class="p-3 text-center text-slate-400">${rowCount}</td>
-        <td class="p-2"><input type="text" class="size-th w-full px-2 py-1 border rounded" value="${th}" required></td>
+        <td class="p-2"><input type="text" class="size-th w-full px-2 py-1 border rounded" value="${th}"></td>
         <td class="p-2"><input type="text" class="size-us w-full px-2 py-1 border rounded" value="${us}"></td>
         <td class="p-2"><input type="number" min="0" oninput="calculateTotalQty()" class="size-qty w-full px-2 py-1 border rounded" value="${qty}" required></td>
         <td class="p-2 text-center"><button type="button" onclick="removeRow(this)" class="text-rose-500 hover:text-rose-700 font-bold px-2 py-1">✕</button></td>
