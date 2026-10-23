@@ -1,6 +1,7 @@
 import os
 import shutil
 import json
+from fastapi.responses import StreamingResponse, FileResponse
 from io import BytesIO
 from typing import Optional
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
@@ -11,7 +12,10 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Spac
 from reportlab.lib import colors
 
 app = FastAPI(title="Jewelry Order System")
-
+@app.get("/")
+def home():
+    return FileResponse("index.html")
+    
 # เปิดสิทธิ์ CORS ให้หน้าเว็บเรียกใช้งานได้
 app.add_middleware(
     CORSMiddleware,
