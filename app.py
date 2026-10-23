@@ -1,17 +1,17 @@
 import os
 import json
+import io
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image as RLImage
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
-import io
-from PIL import Image
 
 app = FastAPI()
 
+# เปิดให้เชื่อมต่อได้จากทุกอุปกรณ์
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,19 +20,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ฐานข้อมูลส่วนกลาง (Shared Database ในหน่วยความจำเซิร์ฟเวอร์)
+# ฐานข้อมูลส่วนกลางในหน่วยความจำเซิร์ฟเวอร์
 orders_db = []
 
 @app.get("/")
 def home():
     return FileResponse("index.html")
 
-# ดึงรายการคำสั่งผลิตทั้งหมด (ให้ทุกเครื่องมองเห็นเหมือนกัน)
+# ดึงรายการสั่งผลิตทั้งหมด
 @app.get("/api/orders")
 def get_orders():
     return orders_db
 
-# สร้างคำสั่งผลิตใหม่
+# สร้างคำสั่งผลิตใหม่ (ตั้งสถานะเริ่มต้นเป็น 'รออนุมัติ')
 @app.post("/api/orders/create")
 async def create_order(
     product_code: str = Form(...),
@@ -43,21 +43,27 @@ async def create_order(
     image: UploadFile = File(None)
 ):
     details = json.loads(details_json)
-    
     order_data = {
         "code": product_code,
         "weight": target_weight,
         "factory": factory_name,
         "dueDate": due_date,
         "sizes": details,
-        "status": "อนุมัติผลิต"
+        "status": "รออนุมัติ"
     }
-    
-    # บันทึกลงฐานข้อมูลส่วนกลาง
     orders_db.insert(0, order_data)
     return {"status": "success", "order": order_data}
 
-# อัปเดตการรับชิ้นงาน (ตัดยอดค้างรับร่วมกัน)
+# อนุมัติการผลิต
+@app.post("/api/orders/approve")
+async def approve_order(product_code: str = Form(...)):
+    for order in orders_db:
+        if order["code"] == product_code:
+            order["status"] = "อนุมัติผลิต"
+            return {"status": "success", "order": order}
+    return {"status": "not found"}
+
+# รับชิ้นงานเข้าคลัง (ตัดยอดค้างรับ)
 @app.post("/api/orders/receive")
 async def receive_item(
     product_code: str = Form(...),
@@ -72,7 +78,7 @@ async def receive_item(
                     return {"status": "success", "order": order}
     return {"status": "not found"}
 
-# พิมพ์ใบสั่งงาน PDF
+# ออกใบสั่งผลิตเป็น PDF
 @app.get("/api/orders/{product_code}/pdf")
 def generate_pdf(product_code: str):
     order = next((o for o in orders_db if o["code"] == product_code), None)
@@ -84,12 +90,12 @@ def generate_pdf(product_code: str):
     elements = []
     styles = getSampleStyleSheet()
     
-    elements.append(Paragraph(f"WORK ORDER: {order['code']}", styles['Title']))
+    elements.append(Paragraph(f"PRODUCTION WORK ORDER: {order['code']}", styles['Title']))
     elements.append(Spacer(1, 10))
-    elements.append(Paragraph(f"Weight: {order['weight']} | Factory: {order['factory']} | Due: {order['dueDate']}", styles['Normal']))
+    elements.append(Paragraph(f"Status: {order['status']} | Weight: {order['weight']} | Factory: {order['factory']} | Due: {order['dueDate'] or '-'}", styles['Normal']))
     elements.append(Spacer(1, 15))
     
-    table_data = [["Size TH", "Size US", "Target Qty", "Received", "Pending"]]
+    table_data = [["Size TH", "Size US", "Ordered Qty", "Received", "Pending"]]
     for item in order["sizes"]:
         rem = item["qty"] - item.get("received", 0)
         table_data.append([item["size_th"], item["size_us"], str(item["qty"]), str(item.get("received", 0)), str(rem)])
