@@ -1,22 +1,17 @@
 import os
-import shutil
 import json
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import StreamingResponse, FileResponse
-from io import BytesIO
-from typing import Optional
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Spacer
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image as RLImage
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
+import io
+from PIL import Image
 
-app = FastAPI(title="Jewelry Order System")
-@app.get("/")
-def home():
-    return FileResponse("index.html")
-    
-# เปิดสิทธิ์ CORS ให้หน้าเว็บเรียกใช้งานได้
+app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,84 +20,89 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = "uploaded_drawings"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-orders_db = {}
+# ฐานข้อมูลส่วนกลาง (Shared Database ในหน่วยความจำเซิร์ฟเวอร์)
+orders_db = []
 
+@app.get("/")
+def home():
+    return FileResponse("index.html")
+
+# ดึงรายการคำสั่งผลิตทั้งหมด (ให้ทุกเครื่องมองเห็นเหมือนกัน)
+@app.get("/api/orders")
+def get_orders():
+    return orders_db
+
+# สร้างคำสั่งผลิตใหม่
 @app.post("/api/orders/create")
 async def create_order(
     product_code: str = Form(...),
-    weight_desc: str = Form(...),
-    order_date: str = Form(...),
-    items_json: str = Form(...),
-    image_file: Optional[UploadFile] = File(None)
+    target_weight: str = Form(...),
+    details_json: str = Form(...),
+    factory_name: str = Form("โรงงานช่างทอง 1"),
+    due_date: str = Form(""),
+    image: UploadFile = File(None)
 ):
-    saved_image_path = None
-    if image_file:
-        ext = image_file.filename.split(".")[-1]
-        saved_image_path = os.path.join(UPLOAD_DIR, f"{product_code}.{ext}")
-        with open(saved_image_path, "wb") as buffer:
-            shutil.copyfileobj(image_file.file, buffer)
-            
-    items = json.loads(items_json)
-    for item in items:
-        item["received"] = 0
-        
-    orders_db[product_code] = {
-        "product_code": product_code,
-        "weight_desc": weight_desc,
-        "order_date": order_date,
-        "image_path": saved_image_path,
-        "items": items
+    details = json.loads(details_json)
+    
+    order_data = {
+        "code": product_code,
+        "weight": target_weight,
+        "factory": factory_name,
+        "dueDate": due_date,
+        "sizes": details,
+        "status": "อนุมัติผลิต"
     }
-    return {"status": "success", "product_code": product_code}
+    
+    # บันทึกลงฐานข้อมูลส่วนกลาง
+    orders_db.insert(0, order_data)
+    return {"status": "success", "order": order_data}
 
+# อัปเดตการรับชิ้นงาน (ตัดยอดค้างรับร่วมกัน)
+@app.post("/api/orders/receive")
+async def receive_item(
+    product_code: str = Form(...),
+    size_th: str = Form(...),
+    qty: int = Form(...)
+):
+    for order in orders_db:
+        if order["code"] == product_code:
+            for s in order["sizes"]:
+                if s["size_th"] == size_th:
+                    s["received"] = min(s["qty"], s.get("received", 0) + qty)
+                    return {"status": "success", "order": order}
+    return {"status": "not found"}
+
+# พิมพ์ใบสั่งงาน PDF
 @app.get("/api/orders/{product_code}/pdf")
-def export_pdf(product_code: str):
-    if product_code not in orders_db:
-        raise HTTPException(status_code=404, detail="Order not found")
-        
-    order = orders_db[product_code]
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+def generate_pdf(product_code: str):
+    order = next((o for o in orders_db if o["code"] == product_code), None)
+    if not order:
+        return {"detail": "Order not found"}
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
     elements = []
+    styles = getSampleStyleSheet()
     
-    if order["image_path"] and os.path.exists(order["image_path"]):
-        img = Image(order["image_path"], width=180, height=180)
-        elements.append(img)
-        elements.append(Spacer(1, 15))
-        
-    table_data = [["Product", "Weight", "Size\n(TH)", "Size (US)", "QTY", "Total"]]
-    total_qty = sum(int(item["qty"]) for item in order["items"])
-    num_rows = len(order["items"])
-    
-    for idx, item in enumerate(order["items"]):
-        row = [
-            order["product_code"] if idx == 0 else "",
-            order["weight_desc"] if idx == 0 else "",
-            str(item.get("size_th", "")),
-            str(item.get("size_us", "")),
-            str(item.get("qty", "")),
-            str(total_qty) if idx == 0 else ""
-        ]
-        table_data.append(row)
-        
-    t = Table(table_data, colWidths=[90, 80, 85, 85, 80, 90])
-    t.setStyle(TableStyle([
-        ('GRID', (0,0), (-1,-1), 0.8, colors.black),
-        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
-        ('FONTSIZE', (0,0), (-1,-1), 10),
-        ('SPAN', (0, 1), (0, num_rows)),
-        ('SPAN', (1, 1), (1, num_rows)),
-        ('SPAN', (5, 1), (5, num_rows)),
-    ]))
-    elements.append(t)
+    elements.append(Paragraph(f"WORK ORDER: {order['code']}", styles['Title']))
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph(f"Weight: {order['weight']} | Factory: {order['factory']} | Due: {order['dueDate']}", styles['Normal']))
     elements.append(Spacer(1, 15))
     
-    date_table = Table([[f"Date: {order['order_date']}"]], colWidths=[510])
-    elements.append(date_table)
+    table_data = [["Size TH", "Size US", "Target Qty", "Received", "Pending"]]
+    for item in order["sizes"]:
+        rem = item["qty"] - item.get("received", 0)
+        table_data.append([item["size_th"], item["size_us"], str(item["qty"]), str(item.get("received", 0)), str(rem)])
+        
+    t = Table(table_data, colwidths=[90, 90, 100, 100, 100])
+    t.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ('BACKGROUND', (0,0), (-1,0), colors.whitesmoke),
+        ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+    ]))
+    elements.append(t)
     
     doc.build(elements)
     buffer.seek(0)
