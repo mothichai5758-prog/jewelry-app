@@ -122,7 +122,6 @@
             </div>
         </div>
 
-        <!-- View Sections Container -->
         <div class="p-4 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
             <!-- 1. OVERVIEW VIEW -->
@@ -216,9 +215,7 @@
                             <h3 class="text-sm font-bold text-stone-900">ติดตามรายการผลิต</h3>
                             <p class="text-xs text-stone-400">จำนวนทุกหน่วยเป็นชิ้น • น้ำหนักเป็นกรัม</p>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <input type="text" id="orderSearchInput" onkeyup="renderOrdersTable()" placeholder="ค้นหาสินค้า, เลขที่ใบสั่ง..." class="text-xs border border-stone-200 rounded-xl px-3 py-2 w-48 md:w-64 focus:outline-none focus:ring-1 focus:ring-gold-600">
-                        </div>
+                        <input type="text" id="orderSearchInput" onkeyup="renderOrdersTable()" placeholder="ค้นหาสินค้า, เลขที่ใบสั่ง..." class="text-xs border border-stone-200 rounded-xl px-3 py-2 w-48 md:w-64 focus:outline-none focus:ring-1 focus:ring-gold-600">
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
@@ -231,7 +228,7 @@
                                     <th class="p-3 text-right">รับแล้ว</th>
                                     <th class="p-3 text-right">ค้าง</th>
                                     <th class="p-3 text-center">สถานะ</th>
-                                    <th class="p-3 text-center">พิมพ์ PDF</th>
+                                    <th class="p-3 text-center">พิมพ์ใบงาน</th>
                                 </tr>
                             </thead>
                             <tbody id="ordersTableBody" class="divide-y divide-stone-100 text-stone-700">
@@ -260,18 +257,65 @@
 
             <!-- 3. PRODUCTS MANAGEMENT VIEW -->
             <section id="view-products" class="space-y-6 hidden">
-                <div>
-                    <h2 class="text-xl md:text-2xl font-bold text-stone-900">จัดการสินค้า</h2>
-                    <p class="text-xs md:text-sm text-stone-500 mt-1">เพิ่มประเภทและทะเบียนสินค้า เพื่อเลือกใช้ในใบสั่งผลิต</p>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-stone-900">จัดการสินค้า</h2>
+                        <p class="text-xs md:text-sm text-stone-500 mt-1">เพิ่มประเภทและทะเบียนสินค้า เพื่อเลือกใช้ในใบสั่งผลิต</p>
+                    </div>
+                    <button onclick="openAddProductModal()" class="bg-gold-700 text-white text-xs md:text-sm px-4 py-2 rounded-xl font-medium shadow-sm hover:bg-gold-800 transition flex items-center justify-center space-x-1.5 self-start md:self-auto">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>เพิ่มสินค้าใหม่</span>
+                    </button>
                 </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm">
                         <span class="text-xs text-stone-400 font-semibold uppercase">สินค้าเปิดใช้งาน</span>
-                        <p class="text-3xl font-bold text-stone-800 mt-2">1 รายการ</p>
+                        <p class="text-3xl font-bold text-stone-800 mt-2" id="prod-total-count">0 รายการ</p>
                     </div>
                     <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm">
                         <span class="text-xs text-stone-400 font-semibold uppercase">ประเภทสินค้า</span>
-                        <p class="text-3xl font-bold text-stone-800 mt-2">7 ประเภท</p>
+                        <p class="text-3xl font-bold text-stone-800 mt-2" id="cat-total-count">0 ประเภท</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-5 space-y-4">
+                    <h3 class="text-sm font-bold text-stone-900">ประเภทสินค้า</h3>
+                    <p class="text-xs text-stone-400">เพิ่มประเภทให้ตรงกับสินค้าที่ผลิตจริง</p>
+                    <div class="flex flex-col md:flex-row gap-2">
+                        <input type="text" id="newCategoryInput" placeholder="เช่น เข็มกลัด, จี้พระ, ต่างหู" class="text-xs border border-stone-200 rounded-xl px-3 py-2 flex-1 focus:outline-none focus:ring-1 focus:ring-gold-600">
+                        <button onclick="addNewCategory()" class="bg-stone-800 hover:bg-stone-900 text-white text-xs px-4 py-2 rounded-xl font-medium transition">
+                            + เพิ่มประเภทสินค้า
+                        </button>
+                    </div>
+                    <div id="categoryChipsList" class="flex flex-wrap gap-2 pt-2"></div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                    <div class="p-4 md:p-5 border-b border-stone-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-stone-900">ทะเบียนสินค้า</h3>
+                            <p class="text-xs text-stone-400">เลือกใช้ในใบสั่งผลิต พร้อมประเภททองและน้ำหนักตั้งต้น</p>
+                        </div>
+                        <input type="text" id="prodSearchInput" onkeyup="renderProductsTable()" placeholder="ค้นหารหัส, ชื่อสินค้า หรือประเภท..." class="text-xs border border-stone-200 rounded-xl px-3 py-2 w-full md:w-64 focus:outline-none focus:ring-1 focus:ring-gold-600">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-stone-50 border-b border-stone-200 text-stone-500">
+                                <tr>
+                                    <th class="p-3">รหัส / ชื่อสินค้า</th>
+                                    <th class="p-3">ประเภท / ทอง</th>
+                                    <th class="p-3 text-center">น้ำหนักตั้งต้น</th>
+                                    <th class="p-3 text-center">สถานะ</th>
+                                    <th class="p-3 text-center">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTableBody" class="divide-y divide-stone-100 text-stone-700">
+                                <tr>
+                                    <td colspan="5" class="p-8 text-center text-stone-400">ยังไม่มีสินค้าในทะเบียน</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
@@ -403,6 +447,94 @@
         </div>
     </div>
 
+    <!-- ADD PRODUCT MODAL -->
+    <div id="addProductModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 md:p-6 hidden overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-5 md:p-8 shadow-2xl space-y-5 my-auto">
+            <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                <h3 class="text-lg font-bold text-stone-900">เพิ่มสินค้าเข้าทะเบียน</h3>
+                <button onclick="closeAddProductModal()" class="text-stone-400 hover:text-stone-700 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form onsubmit="handleSaveProduct(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-stone-700 mb-1">รหัส / ชื่อแบบสินค้า *</label>
+                    <input type="text" id="m_prod_name" required placeholder="เช่น แหวนเกลี้ยงปลอกมีด, Product 4" class="w-full text-xs border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-gold-600">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-700 mb-1">ประเภทสินค้า</label>
+                        <select id="m_prod_cat" class="w-full text-xs border border-stone-200 rounded-xl px-3 py-2.5 bg-white focus:outline-none focus:ring-1 focus:ring-gold-600"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-700 mb-1">น้ำหนักตั้งต้น (กรัม)</label>
+                        <input type="text" id="m_prod_weight" placeholder="เช่น 1.0g" class="w-full text-xs border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-gold-600">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-2 pt-3">
+                    <button type="button" onclick="closeAddProductModal()" class="px-4 py-2 text-xs text-stone-600 rounded-xl hover:bg-stone-100">ยกเลิก</button>
+                    <button type="submit" class="bg-gold-700 hover:bg-gold-800 text-white text-xs px-5 py-2 rounded-xl font-medium shadow transition">บันทึกสินค้า</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT ORDER MODAL -->
+    <div id="editOrderModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 md:p-6 hidden overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-3xl w-full p-5 md:p-8 shadow-2xl space-y-5 my-auto max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                <h3 class="text-lg font-bold text-stone-900">แก้ไขใบสั่งผลิต: <span id="edit_modal_code_title" class="text-gold-700"></span></h3>
+                <button onclick="closeEditOrderModal()" class="text-stone-400 hover:text-stone-700 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form onsubmit="handleSaveEditOrder(event)" class="space-y-4">
+                <input type="hidden" id="edit_product_code">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-700 mb-1">น้ำหนักทองเฉลี่ย</label>
+                        <input type="text" id="edit_target_weight" required class="w-full text-xs border border-stone-200 rounded-xl px-3 py-2 focus:ring-1 focus:ring-gold-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-700 mb-1">โรงงาน / แผนก</label>
+                        <select id="edit_factory_name" class="w-full text-xs border border-stone-200 rounded-xl px-3 py-2 bg-white focus:ring-1 focus:ring-gold-600 focus:outline-none">
+                            <option value="โรงงานช่างทอง 1">โรงงานช่างทอง 1</option>
+                            <option value="แผนกหล่อ">แผนกหล่อ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-700 mb-1">วันที่กำหนดส่ง</label>
+                        <input type="date" id="edit_due_date" class="w-full text-xs border border-stone-200 rounded-xl px-3 py-2 focus:ring-1 focus:ring-gold-600 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="border border-stone-200 rounded-2xl overflow-hidden">
+                    <div class="bg-stone-50 px-4 py-2 border-b border-stone-200 flex justify-between items-center text-xs font-bold text-stone-700">
+                        <span>รายการไซส์แหวน</span>
+                        <span id="editModalTotalQtyDisplay" class="text-gold-700">รวม: 0 ชิ้น</span>
+                    </div>
+                    <div class="max-h-48 overflow-y-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-stone-50 border-b border-stone-200 text-stone-500 sticky top-0">
+                                <tr>
+                                    <th class="p-2">ไซส์ TH</th>
+                                    <th class="p-2">ไซส์ US</th>
+                                    <th class="p-2 w-32">จำนวนสั่ง (ชิ้น)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="editSizeInputsTbody" class="divide-y divide-stone-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="closeEditOrderModal()" class="px-4 py-2 text-xs text-stone-600 rounded-xl hover:bg-stone-100">ยกเลิก</button>
+                    <button type="submit" class="bg-gold-700 hover:bg-gold-800 text-white text-xs px-5 py-2 rounded-xl font-medium shadow transition">บันทึกการแก้ไข</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- JAVASCRIPT LOGIC -->
     <script>
         const ringSizesDefinition = [
@@ -420,6 +552,10 @@
         ];
 
         let orders = [];
+        let productCategories = ["แหวน", "สร้อยข้อมือ", "กำไล", "สร้อยคอ", "จี้", "ต่างหู", "อื่นๆ"];
+        let productRegistry = [
+            { id: 1, name: "แหวนทองแท้มาตรฐาน", category: "แหวน", defaultWeight: "1.0g", active: true }
+        ];
 
         window.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
@@ -592,6 +728,112 @@
             }
         }
 
+        async function cancelOrder(orderCode) {
+            if (!confirm(`ยืนยันการยกเลิกใบสั่งผลิต ${orderCode}?`)) return;
+            try {
+                const fd = new FormData();
+                fd.append('product_code', orderCode);
+                const res = await fetch('/api/orders/delete', { method: 'POST', body: fd });
+                if (res.ok) {
+                    alert(`ยกเลิกใบสั่งผลิต ${orderCode} เรียบร้อยแล้ว`);
+                    await fetchOrdersFromServer();
+                }
+            } catch(e) {
+                alert('เกิดข้อผิดพลาดในการยกเลิก');
+            }
+        }
+
+        function openEditOrderModal(orderCode) {
+            const order = orders.find(o => o.code === orderCode);
+            if (!order) return;
+
+            document.getElementById('edit_modal_code_title').innerText = order.code;
+            document.getElementById('edit_product_code').value = order.code;
+            document.getElementById('edit_target_weight').value = order.weight;
+            document.getElementById('edit_factory_name').value = order.factory;
+            document.getElementById('edit_due_date').value = order.dueDate || '';
+
+            const tbody = document.getElementById('editSizeInputsTbody');
+            tbody.innerHTML = '';
+            ringSizesDefinition.forEach(s => {
+                const existing = order.sizes.find(item => item.size_th === s.th);
+                const currentQty = existing ? existing.qty : '';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-2 font-medium text-stone-700">${s.th}</td>
+                    <td class="p-2 text-stone-500">${s.us}</td>
+                    <td class="p-2">
+                        <input type="number" min="0" placeholder="0" data-th="${s.th}" data-us="${s.us}"
+                               value="${currentQty}"
+                               oninput="calcEditModalTotal()"
+                               class="edit-modal-qty-input w-full border border-stone-200 rounded-lg px-2 py-1 text-xs focus:ring-1 focus:ring-gold-600 focus:outline-none">
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            calcEditModalTotal();
+            document.getElementById('editOrderModal').classList.remove('hidden');
+        }
+
+        function closeEditOrderModal() {
+            document.getElementById('editOrderModal').classList.add('hidden');
+        }
+
+        function calcEditModalTotal() {
+            let total = 0;
+            document.querySelectorAll('.edit-modal-qty-input').forEach(input => {
+                total += parseInt(input.value) || 0;
+            });
+            document.getElementById('editModalTotalQtyDisplay').innerText = `รวม: ${total} ชิ้น`;
+            return total;
+        }
+
+        async function handleSaveEditOrder(e) {
+            e.preventDefault();
+            const pCode = document.getElementById('edit_product_code').value;
+            const weight = document.getElementById('edit_target_weight').value.trim();
+            const factory = document.getElementById('edit_factory_name').value;
+            const dueDate = document.getElementById('edit_due_date').value;
+
+            const sizesData = [];
+            document.querySelectorAll('.edit-modal-qty-input').forEach(input => {
+                const qtyVal = parseInt(input.value) || 0;
+                if (qtyVal > 0) {
+                    sizesData.push({
+                        size_th: input.dataset.th,
+                        size_us: input.dataset.us,
+                        qty: qtyVal,
+                        received: 0
+                    });
+                }
+            });
+
+            if (sizesData.length === 0) {
+                alert('กรุณากรอกจำนวนอย่างน้อย 1 ไซส์');
+                return;
+            }
+
+            try {
+                const fd = new FormData();
+                fd.append('product_code', pCode);
+                fd.append('target_weight', weight);
+                fd.append('factory_name', factory);
+                fd.append('due_date', dueDate);
+                fd.append('details_json', JSON.stringify(sizesData));
+
+                const res = await fetch('/api/orders/update', { method: 'POST', body: fd });
+                if (res.ok) {
+                    alert('บันทึกการแก้ไขคำสั่งผลิตเรียบร้อยแล้ว');
+                    closeEditOrderModal();
+                    await fetchOrdersFromServer();
+                }
+            } catch(e) {
+                alert('ไม่สามารถบันทึกข้อมูลได้');
+            }
+        }
+
         async function recordItemReceive(orderCode, sizeTh) {
             const order = orders.find(o => o.code === orderCode);
             if (!order) return;
@@ -617,15 +859,9 @@
             }
         }
 
+        // เปิดหน้าใบสั่งงาน (Work Order) บนแท็บใหม่ สั่งพิมพ์ได้ทันที
         function downloadPDF(orderCode) {
-            const url = `/api/orders/${encodeURIComponent(orderCode)}/pdf`;
-            const link = document.createElement('a');
-            link.href = url;
-            link.target = '_blank';
-            link.download = `work_order_${orderCode}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            window.open('/api/orders/' + encodeURIComponent(orderCode) + '/pdf', '_blank');
         }
 
         function renderAll() {
@@ -634,6 +870,7 @@
             renderApproveView();
             renderReceiveView();
             renderOrdersDetailView();
+            renderProductsView();
         }
 
         function renderKPIs() {
@@ -649,8 +886,8 @@
                     let ord = 0;
                     let rec = 0;
                     o.sizes.forEach(s => {
-                        ord += s.qty;
-                        rec += (s.received || 0);
+                        ord += (parseInt(s.qty) || 0);
+                        rec += (parseInt(s.received) || 0);
                     });
                     approvedTotal += ord;
                     receivedTotal += rec;
@@ -712,8 +949,8 @@
 
             tbody.innerHTML = '';
             filtered.forEach(o => {
-                const totalOrd = o.sizes.reduce((a, b) => a + b.qty, 0);
-                const totalRec = o.sizes.reduce((a, b) => a + (b.received || 0), 0);
+                const totalOrd = o.sizes.reduce((a, b) => a + (parseInt(b.qty) || 0), 0);
+                const totalRec = o.sizes.reduce((a, b) => a + (parseInt(b.received) || 0), 0);
                 const isComplete = totalRec >= totalOrd;
 
                 let statusBadge = '';
@@ -737,7 +974,7 @@
                     <td class="p-3 text-center">${statusBadge}</td>
                     <td class="p-3 text-center">
                         <button onclick="downloadPDF('${o.code}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1 bg-rose-50 rounded-lg">
-                            <i class="fa-solid fa-file-pdf mr-1"></i> PDF
+                            <i class="fa-solid fa-print mr-1"></i> พิมพ์ใบงาน
                         </button>
                     </td>
                 `;
@@ -768,7 +1005,7 @@
             } else {
                 html += '<div class="space-y-4">';
                 waitingOrders.forEach(o => {
-                    const totalOrd = o.sizes.reduce((a, b) => a + b.qty, 0);
+                    const totalOrd = o.sizes.reduce((a, b) => a + (parseInt(b.qty) || 0), 0);
                     html += `
                         <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
                             <div>
@@ -779,9 +1016,15 @@
                                 </div>
                                 <p class="text-xs text-stone-400 mt-1">ส่งช่าง: ${o.factory} | กำหนดส่ง: ${o.dueDate || '-'} | ยอดสั่งรวม: <strong class="text-stone-700">${totalOrd} ชิ้น</strong></p>
                             </div>
-                            <div class="flex items-center space-x-2">
+                            <div class="flex flex-wrap items-center gap-2">
                                 <button onclick="downloadPDF('${o.code}')" class="text-xs px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-medium">
-                                    <i class="fa-solid fa-file-pdf text-rose-500 mr-1"></i> ตรวจแบบ PDF
+                                    <i class="fa-solid fa-print text-rose-500 mr-1"></i> ตรวจใบงาน
+                                </button>
+                                <button onclick="openEditOrderModal('${o.code}')" class="text-xs px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl font-medium transition">
+                                    <i class="fa-regular fa-pen-to-square mr-1"></i> แก้ไข
+                                </button>
+                                <button onclick="cancelOrder('${o.code}')" class="text-xs px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-medium transition">
+                                    <i class="fa-regular fa-trash-can mr-1"></i> ยกเลิกใบสั่ง
                                 </button>
                                 <button onclick="approveOrder('${o.code}')" class="text-xs px-4 py-2 bg-gold-700 hover:bg-gold-800 text-white rounded-xl font-semibold shadow transition">
                                     <i class="fa-solid fa-check mr-1"></i> อนุมัติเข้าผลิต
@@ -822,11 +1065,13 @@
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                 `;
                 o.sizes.forEach(s => {
-                    const remain = s.qty - (s.received || 0);
+                    const qtyVal = parseInt(s.qty) || 0;
+                    const recVal = parseInt(s.received) || 0;
+                    const remain = qtyVal - recVal;
                     html += `
                         <div class="bg-stone-50 border border-stone-200 p-2.5 rounded-xl text-center">
                             <span class="text-xs font-bold text-stone-700">ไซส์ ${s.size_th}</span>
-                            <div class="text-[11px] text-stone-500 mt-1">สั่ง: ${s.qty} | รับ: <span class="text-emerald-600 font-bold">${s.received || 0}</span></div>
+                            <div class="text-[11px] text-stone-500 mt-1">สั่ง: ${qtyVal} | รับ: <span class="text-emerald-600 font-bold">${recVal}</span></div>
                             <button onclick="recordItemReceive('${o.code}', '${s.size_th}')"
                                     class="w-full mt-2 text-[10px] font-semibold py-1 rounded-lg ${remain === 0 ? 'bg-stone-200 text-stone-400' : 'bg-gold-700 hover:bg-gold-800 text-white'}"
                                     ${remain === 0 ? 'disabled' : ''}>
@@ -850,7 +1095,7 @@
             }
             let html = '<div class="divide-y divide-stone-100">';
             orders.forEach(o => {
-                const totalOrd = o.sizes.reduce((a, b) => a + b.qty, 0);
+                const totalOrd = o.sizes.reduce((a, b) => a + (parseInt(b.qty) || 0), 0);
                 html += `
                     <div class="py-4 flex justify-between items-center">
                         <div>
@@ -861,13 +1106,112 @@
                             <p class="text-xs text-stone-400 mt-0.5">กำหนดส่ง: ${o.dueDate || '-'} | ช่าง: ${o.factory} | รวม ${totalOrd} ชิ้น</p>
                         </div>
                         <button onclick="downloadPDF('${o.code}')" class="bg-stone-100 text-stone-700 hover:bg-stone-200 text-xs px-3 py-1.5 rounded-xl font-medium">
-                            <i class="fa-solid fa-file-pdf text-rose-500 mr-1"></i> พิมพ์ PDF
+                            <i class="fa-solid fa-print text-rose-500 mr-1"></i> พิมพ์ใบงาน
                         </button>
                     </div>
                 `;
             });
             html += '</div>';
             container.innerHTML = html;
+        }
+
+        function openAddProductModal() {
+            const catSelect = document.getElementById('m_prod_cat');
+            if (catSelect) {
+                catSelect.innerHTML = productCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+            document.getElementById('addProductModal').classList.remove('hidden');
+        }
+
+        function closeAddProductModal() {
+            document.getElementById('addProductModal').classList.add('hidden');
+        }
+
+        function handleSaveProduct(e) {
+            e.preventDefault();
+            const name = document.getElementById('m_prod_name').value.trim();
+            const cat = document.getElementById('m_prod_cat').value;
+            const weight = document.getElementById('m_prod_weight').value.trim() || '-';
+
+            productRegistry.unshift({
+                id: Date.now(),
+                name: name,
+                category: cat,
+                defaultWeight: weight,
+                active: true
+            });
+
+            closeAddProductModal();
+            renderProductsView();
+            alert('เพิ่มสินค้าเข้าสู่ทะเบียนสำเร็จ');
+        }
+
+        function addNewCategory() {
+            const input = document.getElementById('newCategoryInput');
+            const val = input.value.trim();
+            if (val && !productCategories.includes(val)) {
+                productCategories.push(val);
+                input.value = '';
+                renderProductsView();
+            }
+        }
+
+        function deleteProduct(id) {
+            if (confirm('ยืนยันลบสินค้านี้ออกจากทะเบียน?')) {
+                productRegistry = productRegistry.filter(p => p.id !== id);
+                renderProductsView();
+            }
+        }
+
+        function renderProductsView() {
+            const totalProd = document.getElementById('prod-total-count');
+            if (totalProd) totalProd.innerText = `${productRegistry.filter(p => p.active).length} รายการ`;
+            
+            const totalCat = document.getElementById('cat-total-count');
+            if (totalCat) totalCat.innerText = `${productCategories.length} ประเภท`;
+
+            const chipContainer = document.getElementById('categoryChipsList');
+            if (chipContainer) {
+                chipContainer.innerHTML = productCategories.map(c => `
+                    <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs bg-stone-100 text-stone-700 font-medium">
+                        ${c}
+                    </span>
+                `).join('');
+            }
+
+            renderProductsTable();
+        }
+
+        function renderProductsTable() {
+            const tbody = document.getElementById('productsTableBody');
+            if (!tbody) return;
+
+            const searchInput = document.getElementById('prodSearchInput');
+            const search = searchInput ? searchInput.value.toLowerCase() : '';
+            const filtered = productRegistry.filter(p => 
+                p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-stone-400">ไม่พบข้อมูลสินค้า</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(p => `
+                <tr class="hover:bg-stone-50 transition">
+                    <td class="p-3 font-semibold text-stone-900">${p.name}</td>
+                    <td class="p-3 text-stone-600">${p.category}</td>
+                    <td class="p-3 text-center">${p.defaultWeight}</td>
+                    <td class="p-3 text-center">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">เปิดใช้งาน</span>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteProduct(${p.id})" class="text-rose-500 hover:text-rose-700 text-xs px-2 py-1">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
         }
 
         function addFactory() {
