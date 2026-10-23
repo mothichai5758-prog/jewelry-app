@@ -27,6 +27,8 @@
         .sidebar-active { background-color: #F7F2E7; color: #8A5A12; font-weight: 600; }
         .sidebar-inactive { color: #57534E; }
         .sidebar-inactive:hover { background-color: #F5F5F4; color: #1C1917; }
+        ::-webkit-scrollbar { height: 6px; width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #D6D3D1; border-radius: 4px; }
     </style>
 </head>
 <body class="text-stone-800 antialiased flex flex-col md:flex-row min-h-screen">
@@ -80,6 +82,7 @@
                     </button>
                     <button onclick="switchTab('approve')" id="nav-approve" class="w-full flex items-center px-3 py-2.5 rounded-xl text-sm transition sidebar-inactive">
                         <i class="fa-regular fa-square-check w-6 text-center mr-2"></i> อนุมัติผลิต
+                        <span id="badge-approve-count" class="ml-auto bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
                     </button>
                     <button onclick="switchTab('receive')" id="nav-receive" class="w-full flex items-center px-3 py-2.5 rounded-xl text-sm transition sidebar-inactive">
                         <i class="fa-solid fa-box-open w-6 text-center mr-2"></i> รับสินค้าสำเร็จ
@@ -97,7 +100,7 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>ระบบบันทึกออนไลน์</span>
                 </div>
-                <p class="text-[11px] text-stone-400">สั่งผลิต &rarr; ทยอยรับ &rarr; สรุปรายงาน</p>
+                <p class="text-[11px] text-stone-400">สั่งผลิต &rarr; อนุมัติ &rarr; ทยอยรับงาน</p>
             </div>
         </div>
     </aside>
@@ -126,7 +129,7 @@
             <section id="view-overview" class="space-y-6">
                 <div>
                     <h2 class="text-xl md:text-2xl font-bold text-stone-900 tracking-tight">ภาพรวมการผลิต</h2>
-                    <p class="text-xs md:text-sm text-stone-500 mt-1">ติดตามงานทุกขั้นตอน ตั้งแต่สั่งผลิตจนถึงรับสินค้า</p>
+                    <p class="text-xs md:text-sm text-stone-500 mt-1">ติดตามงานทุกขั้นตอน ตั้งแต่สั่งผลิต อนุมัติ จนถึงรับสินค้า</p>
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
@@ -162,12 +165,12 @@
                     </div>
                     <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col justify-between">
                         <div class="flex justify-between items-start text-stone-400">
-                            <span class="text-xs font-medium text-stone-600">งานเกินกำหนด</span>
-                            <i class="fa-regular fa-circle-exclamation text-rose-500"></i>
+                            <span class="text-xs font-medium text-stone-600">รอการอนุมัติ</span>
+                            <i class="fa-regular fa-hourglass text-gold-600"></i>
                         </div>
                         <div class="mt-4">
-                            <p class="text-2xl md:text-3xl font-bold text-stone-400" id="kpi-overdue-qty">0 <span class="text-xs font-normal text-stone-500">ชิ้น</span></p>
-                            <p class="text-[11px] text-stone-400 mt-1">0 รายการที่ต้องติดตาม</p>
+                            <p class="text-2xl md:text-3xl font-bold text-gold-600" id="kpi-waiting-approval-qty">0 <span class="text-xs font-normal text-stone-500">รายการ</span></p>
+                            <p class="text-[11px] text-stone-400 mt-1">ตรวจแบบก่อนผลิต</p>
                         </div>
                     </div>
                 </div>
@@ -175,7 +178,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm">
                         <h3 class="text-sm font-bold text-stone-900 mb-1">ความคืบหน้าการผลิต</h3>
-                        <p class="text-xs text-stone-400 mb-6">จำนวนรับสำเร็จ เทียบยอดสั่งผลิตทั้งหมด</p>
+                        <p class="text-xs text-stone-400 mb-6">จำนวนรับสำเร็จ เทียบยอดที่อนุมัติผลิตแล้ว</p>
                         <div class="flex items-center space-x-6">
                             <div class="w-24 h-24 rounded-full border-8 border-gold-200 flex items-center justify-center relative">
                                 <span class="text-lg font-bold text-stone-800" id="overview-percent">0%</span>
@@ -198,7 +201,7 @@
                     <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm flex flex-col justify-between">
                         <div>
                             <h3 class="text-sm font-bold text-stone-900 mb-1">งานที่ต้องติดตาม</h3>
-                            <p class="text-xs text-stone-400">เรียงตามวันกำหนดส่งชิ้นงาน</p>
+                            <p class="text-xs text-stone-400">รายการที่ต้องอนุมัติหรือตรวจรับงาน</p>
                         </div>
                         <div class="py-8 text-center text-xs text-stone-400" id="urgentTasksContainer">
                             <i class="fa-regular fa-clipboard-check text-2xl text-stone-300 mb-2"></i>
@@ -264,7 +267,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm">
                         <span class="text-xs text-stone-400 font-semibold uppercase">สินค้าเปิดใช้งาน</span>
-                        <p class="text-3xl font-bold text-stone-800 mt-2" id="prod-total-count">1 รายการ</p>
+                        <p class="text-3xl font-bold text-stone-800 mt-2">1 รายการ</p>
                     </div>
                     <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm">
                         <span class="text-xs text-stone-400 font-semibold uppercase">ประเภทสินค้า</span>
@@ -290,23 +293,16 @@
                 </div>
             </section>
 
-            <!-- 5. APPROVE VIEW -->
+            <!-- 5. APPROVE VIEW (หน้ารออนุมัติการผลิต) -->
             <section id="view-approve" class="space-y-6 hidden">
-                <div>
-                    <h2 class="text-xl md:text-2xl font-bold text-stone-900">อนุมัติการผลิต</h2>
-                    <p class="text-xs md:text-sm text-stone-500 mt-1">ตรวจรายการสินค้า แบบงาน และไฟล์อ้างอิงก่อนเริ่มผลิต</p>
-                </div>
-                <div class="bg-white rounded-2xl border border-stone-200 p-8 text-center text-xs text-stone-400 shadow-sm">
-                    <i class="fa-regular fa-circle-check text-3xl text-stone-300 mb-2"></i>
-                    <p>คำสั่งผลิตทั้งหมดได้รับการยืนยันเรียบร้อยแล้ว</p>
-                </div>
+                <!-- เนื้อหาจะถูกเรนเดอร์โดย renderApproveView() -->
             </section>
 
-            <!-- 6. RECEIVE VIEW -->
+            <!-- 6. RECEIVE VIEW (หน้ารับสินค้าเข้าคลัง) -->
             <section id="view-receive" class="space-y-6 hidden">
                 <div>
                     <h2 class="text-xl md:text-2xl font-bold text-stone-900">รับสินค้าสำเร็จ</h2>
-                    <p class="text-xs md:text-sm text-stone-500 mt-1">รับสินค้าทีละไซส์ บันทึกได้หลายครั้งต่อใบสั่ง</p>
+                    <p class="text-xs md:text-sm text-stone-500 mt-1">รับสินค้าทีละไซส์ (เฉพาะรายการที่อนุมัติผลิตแล้ว)</p>
                 </div>
                 <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 md:p-6" id="receiveViewContainer"></div>
             </section>
@@ -342,7 +338,7 @@
             <div class="flex justify-between items-center border-b border-stone-100 pb-4">
                 <div>
                     <h3 class="text-lg font-bold text-stone-900">สร้างใบสั่งผลิตใหม่</h3>
-                    <p class="text-xs text-stone-400 mt-0.5">ระบุรายละเอียดสินค้า น้ำหนักทอง และไซส์ที่ต้องการผลิต</p>
+                    <p class="text-xs text-stone-400 mt-0.5">ระบบจะส่งใบสั่งไปรอที่ "อนุมัติการผลิต" ก่อนส่งเข้าโรงงาน</p>
                 </div>
                 <button onclick="closeCreateOrderModal()" class="text-stone-400 hover:text-stone-700 text-lg">
                     <i class="fa-solid fa-xmark"></i>
@@ -379,9 +375,10 @@
                     </div>
                 </div>
 
+                <!-- Sizes Matrix Table (ไซส์ 47 ถึง 67) -->
                 <div class="border border-stone-200 rounded-2xl overflow-hidden mt-2">
                     <div class="bg-stone-50 px-4 py-2 border-b border-stone-200 flex justify-between items-center">
-                        <span class="text-xs font-bold text-stone-700">รายการไซส์แหวน (TH / US)</span>
+                        <span class="text-xs font-bold text-stone-700">รายการไซส์แหวนมาตรฐาน (TH 47–67 / US)</span>
                         <span class="text-xs text-gold-700 font-semibold" id="modalTotalQtyDisplay">รวม: 0 ชิ้น</span>
                     </div>
                     <div class="max-h-56 overflow-y-auto">
@@ -401,7 +398,7 @@
                 <div class="flex justify-end space-x-2 pt-2">
                     <button type="button" onclick="closeCreateOrderModal()" class="px-5 py-2.5 text-xs text-stone-600 rounded-xl hover:bg-stone-100">ยกเลิก</button>
                     <button type="submit" class="bg-gold-700 text-white text-xs px-6 py-2.5 rounded-xl font-medium shadow hover:bg-gold-800 transition">
-                        บันทึกคำสั่งผลิต
+                        ส่งขออนุมัติการผลิต
                     </button>
                 </div>
             </form>
@@ -410,14 +407,15 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
+        // ตารางไซส์แหวน 47 ถึง 67
         const ringSizesDefinition = [
-            { th: "47", us: "4" },   { th: "48", us: "4.5" },
+            { th: "47", us: "4.5" },   { th: "48", us: "4.5" },
             { th: "49", us: "5" },   { th: "50", us: "5.5" },
-            { th: "51", us: "5.75" },{ th: "52", us: "6" },
+            { th: "51", us: "6" },{ th: "52", us: "6" },
             { th: "53", us: "6.5" }, { th: "54", us: "7" },
-            { th: "55", us: "7.25" },{ th: "56", us: "7.5" },
+            { th: "55", us: "7.5" },{ th: "56", us: "7.5" },
             { th: "57", us: "8" },   { th: "58", us: "8.5" },
-            { th: "59", us: "8.75" },{ th: "60", us: "9" },
+            { th: "59", us: "9" },{ th: "60", us: "9.5" },
             { th: "61", us: "9.5" }, { th: "62", us: "10" },
             { th: "63", us: "10.5" },{ th: "64", us: "11" },
             { th: "65", us: "11.25" },{ th: "66", us: "11.5" },
@@ -437,7 +435,7 @@
 
             initSizeInputs();
             fetchOrdersFromServer();
-            setInterval(fetchOrdersFromServer, 5000);
+            setInterval(fetchOrdersFromServer, 4000); // ซิงค์ข้อมูลทุกเครื่องอัตโนมัติ
         });
 
         async function fetchOrdersFromServer() {
@@ -567,18 +565,34 @@
                 });
 
                 if (res.ok) {
-                    alert('บันทึกคำสั่งผลิตสำเร็จ');
+                    alert('ส่งคำสั่งผลิตเข้าสู่ขั้นตอน "อนุมัติการผลิต" เรียบร้อยแล้ว');
                     document.getElementById('orderForm').reset();
                     initSizeInputs();
                     calcModalTotal();
                     closeCreateOrderModal();
                     await fetchOrdersFromServer();
-                    switchTab('overview');
+                    switchTab('approve');
                 } else {
                     alert('บันทึกไม่สำเร็จ ตรวจสอบเซิร์ฟเวอร์');
                 }
             } catch (err) {
                 alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+            }
+        }
+
+        // ฟังก์ชันกดยืนยันอนุมัติการผลิต
+        async function approveOrder(orderCode) {
+            if (!confirm(`ยืนยันการอนุมัติคำสั่งผลิต รหัส: ${orderCode} เพื่อเริ่มกระบวนการผลิต?`)) return;
+            try {
+                const fd = new FormData();
+                fd.append('product_code', orderCode);
+                const res = await fetch('/api/orders/approve', { method: 'POST', body: fd });
+                if (res.ok) {
+                    alert(`อนุมัติคำสั่งผลิต ${orderCode} สำเร็จ ช่างเริ่มดำเนินการได้ทันที`);
+                    await fetchOrdersFromServer();
+                }
+            } catch (e) {
+                alert('บันทึกข้อมูลไม่สำเร็จ');
             }
         }
 
@@ -614,52 +628,72 @@
         function renderAll() {
             renderKPIs();
             renderOrdersTable();
+            renderApproveView();
             renderReceiveView();
             renderOrdersDetailView();
         }
 
         function renderKPIs() {
-            let totalOrdered = 0;
-            let totalReceived = 0;
+            let approvedTotal = 0;
+            let receivedTotal = 0;
             let completeCount = 0;
+            let pendingApprovalCount = 0;
 
             orders.forEach(o => {
-                let orderOrdered = 0;
-                let orderRec = 0;
-                o.sizes.forEach(s => {
-                    orderOrdered += s.qty;
-                    orderRec += (s.received || 0);
-                });
-                totalOrdered += orderOrdered;
-                totalReceived += orderRec;
-                if (orderOrdered > 0 && orderRec >= orderOrdered) completeCount++;
+                if (o.status === 'รออนุมัติ') {
+                    pendingApprovalCount++;
+                } else if (o.status === 'อนุมัติผลิต') {
+                    let ord = 0;
+                    let rec = 0;
+                    o.sizes.forEach(s => {
+                        ord += s.qty;
+                        rec += (s.received || 0);
+                    });
+                    approvedTotal += ord;
+                    receivedTotal += rec;
+                    if (ord > 0 && rec >= ord) completeCount++;
+                }
             });
 
-            const pending = totalOrdered - totalReceived;
-            const pct = totalOrdered > 0 ? Math.round((totalReceived / totalOrdered) * 100) : 0;
+            const pendingProduction = approvedTotal - receivedTotal;
+            const pct = approvedTotal > 0 ? Math.round((receivedTotal / approvedTotal) * 100) : 0;
 
             const appQty = document.getElementById('kpi-approved-qty');
-            if (appQty) appQty.innerHTML = `${totalOrdered} <span class="text-xs font-normal text-stone-500">ชิ้น</span>`;
+            if (appQty) appQty.innerHTML = `${approvedTotal} <span class="text-xs font-normal text-stone-500">ชิ้น</span>`;
             const ordCount = document.getElementById('kpi-orders-count');
-            if (ordCount) ordCount.innerText = `${orders.length} ใบสั่งผลิต`;
+            if (ordCount) ordCount.innerText = `${orders.filter(o => o.status === 'อนุมัติผลิต').length} ใบสั่งผลิต`;
             const recQty = document.getElementById('kpi-received-qty');
-            if (recQty) recQty.innerHTML = `${totalReceived} <span class="text-xs font-normal text-stone-500">ชิ้น</span>`;
+            if (recQty) recQty.innerHTML = `${receivedTotal} <span class="text-xs font-normal text-stone-500">ชิ้น</span>`;
             const compCount = document.getElementById('kpi-complete-orders');
             if (compCount) compCount.innerText = `${completeCount} ใบสั่งรับครบแล้ว`;
             const pendQty = document.getElementById('kpi-pending-qty');
-            if (pendQty) pendQty.innerHTML = `${pending} <span class="text-xs font-normal text-stone-500">ชิ้น</span>`;
+            if (pendQty) pendQty.innerHTML = `${pendingProduction} <span class="text-xs font-normal text-stone-500">ชิ้น</span>`;
             
+            const waitElem = document.getElementById('kpi-waiting-approval-qty');
+            if (waitElem) waitElem.innerHTML = `${pendingApprovalCount} <span class="text-xs font-normal text-stone-500">รายการ</span>`;
+
+            // Badge ในเมนูข้าง
+            const badge = document.getElementById('badge-approve-count');
+            if (badge) {
+                if (pendingApprovalCount > 0) {
+                    badge.innerText = pendingApprovalCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
             const pctElem = document.getElementById('overview-percent');
             if (pctElem) pctElem.innerText = `${pct}%`;
             const progRec = document.getElementById('prog-rec-text');
-            if (progRec) progRec.innerText = `${totalReceived} ชิ้น`;
+            if (progRec) progRec.innerText = `${receivedTotal} ชิ้น`;
             const progPend = document.getElementById('prog-pend-text');
-            if (progPend) progPend.innerText = `${pending} ชิ้น`;
+            if (progPend) progPend.innerText = `${pendingProduction} ชิ้น`;
 
             const repRec = document.getElementById('rep-rec');
-            if (repRec) repRec.innerText = `${totalReceived} ชิ้น`;
+            if (repRec) repRec.innerText = `${receivedTotal} ชิ้น`;
             const repWeight = document.getElementById('rep-weight');
-            if (repWeight) repWeight.innerText = `${(totalReceived * 1.0).toFixed(2)} กรัม`;
+            if (repWeight) repWeight.innerText = `${(receivedTotal * 1.0).toFixed(2)} กรัม`;
         }
 
         function renderOrdersTable() {
@@ -680,6 +714,15 @@
                 const totalRec = o.sizes.reduce((a, b) => a + (b.received || 0), 0);
                 const isComplete = totalRec >= totalOrd;
 
+                let statusBadge = '';
+                if (o.status === 'รออนุมัติ') {
+                    statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">รออนุมัติ</span>';
+                } else if (isComplete) {
+                    statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">รับครบแล้ว</span>';
+                } else {
+                    statusBadge = '<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">อยู่ระหว่างผลิต</span>';
+                }
+
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-stone-50 transition";
                 tr.innerHTML = `
@@ -689,11 +732,7 @@
                     <td class="p-3 text-right font-medium">${totalOrd}</td>
                     <td class="p-3 text-right text-emerald-600 font-semibold">${totalRec}</td>
                     <td class="p-3 text-right text-amber-600 font-semibold">${totalOrd - totalRec}</td>
-                    <td class="p-3 text-center">
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${isComplete ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                            ${isComplete ? 'รับครบแล้ว' : 'อยู่ระหว่างผลิต'}
-                        </span>
-                    </td>
+                    <td class="p-3 text-center">${statusBadge}</td>
                     <td class="p-3 text-center">
                         <button onclick="downloadPDF('${o.code}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1 bg-rose-50 rounded-lg">
                             <i class="fa-solid fa-file-pdf mr-1"></i> PDF
@@ -704,15 +743,71 @@
             });
         }
 
+        // แสดงผลหน้าแท็บ อนุมัติการผลิต
+        function renderApproveView() {
+            const container = document.getElementById('view-approve');
+            if (!container) return;
+
+            const waitingOrders = orders.filter(o => o.status === 'รออนุมัติ');
+
+            let html = `
+                <div>
+                    <h2 class="text-xl md:text-2xl font-bold text-stone-900">อนุมัติการผลิต</h2>
+                    <p class="text-xs md:text-sm text-stone-500 mt-1">ตรวจแบบงานและอนุมัติก่อนส่งเข้าโรงงานผลิต (${waitingOrders.length} รายการ)</p>
+                </div>
+            `;
+
+            if (waitingOrders.length === 0) {
+                html += `
+                    <div class="bg-white rounded-2xl border border-stone-200 p-8 text-center text-xs text-stone-400 shadow-sm">
+                        <i class="fa-regular fa-circle-check text-3xl text-emerald-500 mb-2"></i>
+                        <p>ไม่มีงานค้างรออนุมัติ ทุกรายการได้รับการยืนยันเข้าสายผลิตแล้ว</p>
+                    </div>
+                `;
+            } else {
+                html += '<div class="space-y-4">';
+                waitingOrders.forEach(o => {
+                    const totalOrd = o.sizes.reduce((a, b) => a + b.qty, 0);
+                    html += `
+                        <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800">รออนุมัติ</span>
+                                    <h4 class="font-bold text-base text-stone-900">${o.code}</h4>
+                                    <span class="text-xs text-stone-500">(${o.weight})</span>
+                                </div>
+                                <p class="text-xs text-stone-400 mt-1">ส่งช่าง: ${o.factory} | กำหนดส่ง: ${o.dueDate || '-'} | ยอดสั่งรวม: <strong class="text-stone-700">${totalOrd} ชิ้น</strong></p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="downloadPDF('${o.code}')" class="text-xs px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-medium">
+                                    <i class="fa-solid fa-file-pdf text-rose-500 mr-1"></i> ตรวจแบบ PDF
+                                </button>
+                                <button onclick="approveOrder('${o.code}')" class="text-xs px-4 py-2 bg-gold-700 hover:bg-gold-800 text-white rounded-xl font-semibold shadow transition">
+                                    <i class="fa-solid fa-check mr-1"></i> อนุมัติเข้าผลิต
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            container.innerHTML = html;
+        }
+
+        // แสดงผลหน้ารับสินค้า (แสดงเฉพาะที่อนุมัติผลิตแล้ว)
         function renderReceiveView() {
             const container = document.getElementById('receiveViewContainer');
             if (!container) return;
-            if (orders.length === 0) {
-                container.innerHTML = `<p class="text-xs text-stone-400 text-center py-8">ไม่มีรายการที่ต้องรับสินค้า</p>`;
+
+            const approvedOrders = orders.filter(o => o.status === 'อนุมัติผลิต');
+
+            if (approvedOrders.length === 0) {
+                container.innerHTML = `<p class="text-xs text-stone-400 text-center py-8">ไม่มีรายการที่พร้อมรับสินค้า (โปรดตรวจสอบที่แท็บ "อนุมัติผลิต")</p>`;
                 return;
             }
+
             let html = '<div class="space-y-6">';
-            orders.forEach(o => {
+            approvedOrders.forEach(o => {
                 html += `
                     <div class="border border-stone-200 rounded-2xl p-4">
                         <div class="flex justify-between items-center mb-3">
@@ -759,8 +854,11 @@
                 html += `
                     <div class="py-4 flex justify-between items-center">
                         <div>
-                            <p class="text-sm font-bold text-stone-800">${o.code} - ${o.weight}</p>
-                            <p class="text-xs text-stone-400">กำหนดส่ง: ${o.dueDate || '-'} | ช่าง: ${o.factory} | รวม ${totalOrd} ชิ้น</p>
+                            <div class="flex items-center space-x-2">
+                                <p class="text-sm font-bold text-stone-800">${o.code} - ${o.weight}</p>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${o.status === 'รออนุมัติ' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">${o.status}</span>
+                            </div>
+                            <p class="text-xs text-stone-400 mt-0.5">กำหนดส่ง: ${o.dueDate || '-'} | ช่าง: ${o.factory} | รวม ${totalOrd} ชิ้น</p>
                         </div>
                         <button onclick="downloadPDF('${o.code}')" class="bg-stone-100 text-stone-700 hover:bg-stone-200 text-xs px-3 py-1.5 rounded-xl font-medium">
                             <i class="fa-solid fa-file-pdf text-rose-500 mr-1"></i> พิมพ์ PDF
