@@ -1,0 +1,6 @@
+Plaintext
+fastapi
+uvicorn
+reportlab
+python-multipart
+pillow
