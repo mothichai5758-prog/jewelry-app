@@ -458,18 +458,32 @@
             { th: "61", us: "9.5" }
         ];
 
-        // In-memory application state
+        // ตัวแปรเก็บข้อมูลส่วนกลาง
         let orders = [];
 
-        // Initialization
+        // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
         window.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
             const dateStr = today.toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' });
             document.getElementById('currentDateDisplay').innerText = `• ${dateStr}`;
             document.getElementById('due_date').value = today.toISOString().split('T')[0];
             initSizeInputs();
-            renderAll();
+            fetchOrdersFromServer(); // ดึงข้อมูลทันทีเมื่อเปิดเว็บ
+            setInterval(fetchOrdersFromServer, 5000); // ดึงอัปเดตอัตโนมัติทุก 5 วินาที
         });
+
+        // ฟังก์ชันดึงข้อมูลจาก Server ส่วนกลาง
+        async function fetchOrdersFromServer() {
+            try {
+                const res = await fetch('/api/orders');
+                if (res.ok) {
+                    orders = await res.json();
+                    renderAll();
+                }
+            } catch (err) {
+                console.error("Sync error:", err);
+            }
+        }
 
         function toggleMobileSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -498,7 +512,6 @@
                 activeNav.classList.add('sidebar-active');
             }
 
-            // Close mobile sidebar if open
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             if (!sidebar.classList.contains('-translate-x-full')) {
@@ -542,6 +555,7 @@
             return total;
         }
 
+        // ส่งคำสั่งผลิตไปที่ Server กลาง
         async function handleCreateOrder(e) {
             e.preventDefault();
             const pCode = document.getElementById('product_code').value.trim();
@@ -568,55 +582,61 @@
                 return;
             }
 
-            // Sync with FastAPI Backend
             try {
                 const formData = new FormData();
                 formData.append('product_code', pCode);
                 formData.append('target_weight', weight);
+                formData.append('factory_name', factory);
+                formData.append('due_date', dueDate);
                 formData.append('details_json', JSON.stringify(sizesData));
                 if (fileInput.files[0]) {
                     formData.append('image', fileInput.files[0]);
                 }
 
-                await fetch('/api/orders/create', {
+                const res = await fetch('/api/orders/create', {
                     method: 'POST',
                     body: formData
                 });
+
+                if (res.ok) {
+                    alert('บันทึกคำสั่งผลิตเข้าสู่ระบบกลางเรียบร้อยแล้ว');
+                    document.getElementById('orderForm').reset();
+                    initSizeInputs();
+                    calcModalTotal();
+                    closeCreateOrderModal();
+                    await fetchOrdersFromServer(); // โหลดข้อมูลใหม่ทันที
+                    switchTab('overview');
+                } else {
+                    alert('เกิดข้อผิดพลาดในการบันทึกคำสั่งผลิต');
+                }
             } catch (err) {
-                console.log('Online API sync notice: Backend connection saved locally');
+                alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
             }
-
-            // Local State Registration
-            orders.unshift({
-                code: pCode,
-                weight: weight,
-                factory: factory,
-                dueDate: dueDate,
-                sizes: sizesData,
-                status: 'อนุมัติผลิต'
-            });
-
-            alert('บันทึกคำสั่งผลิตเรียบร้อยแล้ว');
-            document.getElementById('orderForm').reset();
-            initSizeInputs();
-            calcModalTotal();
-            closeCreateOrderModal();
-            renderAll();
-            switchTab('overview');
         }
 
-        function recordItemReceive(orderCode, sizeTh) {
+        // รับชิ้นงานและบันทึกขึ้นระบบกลาง
+        async function recordItemReceive(orderCode, sizeTh) {
             const order = orders.find(o => o.code === orderCode);
             if (!order) return;
             const item = order.sizes.find(s => s.size_th === sizeTh);
             if (!item) return;
 
-            const remaining = item.qty - item.received;
+            const remaining = item.qty - (item.received || 0);
             const recQty = prompt(`รับชิ้นงาน รหัส: ${orderCode} ไซส์: ${sizeTh}\n(ค้างรับ ${remaining} ชิ้น)\nกรอกจำนวนที่รับจริง:`, remaining);
             const num = parseInt(recQty);
             if (!isNaN(num) && num > 0) {
-                item.received = Math.min(item.qty, item.received + num);
-                renderAll();
+                try {
+                    const fd = new FormData();
+                    fd.append('product_code', orderCode);
+                    fd.append('size_th', sizeTh);
+                    fd.append('qty', num);
+                    const res = await fetch('/api/orders/receive', { method: 'POST', body: fd });
+                    if (res.ok) {
+                        await fetchOrdersFromServer();
+                    }
+                } catch(e) {
+                    alert('บันทึกข้อมูลไม่สำเร็จ');
+                }
             }
         }
 
@@ -641,7 +661,7 @@
                 let orderRec = 0;
                 o.sizes.forEach(s => {
                     orderOrdered += s.qty;
-                    orderRec += s.received;
+                    orderRec += (s.received || 0);
                 });
                 totalOrdered += orderOrdered;
                 totalReceived += orderRec;
@@ -660,7 +680,6 @@
             document.getElementById('prog-rec-text').innerText = `${totalReceived} ชิ้น`;
             document.getElementById('prog-pend-text').innerText = `${pending} ชิ้น`;
 
-            // Reports Tab Sync
             document.getElementById('rep-rec').innerText = `${totalReceived} ชิ้น`;
             document.getElementById('rep-weight').innerText = `${(totalReceived * 1.0).toFixed(2)} กรัม`;
         }
@@ -678,7 +697,7 @@
             tbody.innerHTML = '';
             filtered.forEach(o => {
                 const totalOrd = o.sizes.reduce((a, b) => a + b.qty, 0);
-                const totalRec = o.sizes.reduce((a, b) => a + b.received, 0);
+                const totalRec = o.sizes.reduce((a, b) => a + (b.received || 0), 0);
                 const isComplete = totalRec >= totalOrd;
 
                 const tr = document.createElement('tr');
@@ -727,11 +746,11 @@
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                 `;
                 o.sizes.forEach(s => {
-                    const remain = s.qty - s.received;
+                    const remain = s.qty - (s.received || 0);
                     html += `
                         <div class="bg-stone-50 border border-stone-200 p-2.5 rounded-xl text-center">
                             <span class="text-xs font-bold text-stone-700">ไซส์ ${s.size_th}</span>
-                            <div class="text-[11px] text-stone-500 mt-1">สั่ง: ${s.qty} | รับ: <span class="text-emerald-600 font-bold">${s.received}</span></div>
+                            <div class="text-[11px] text-stone-500 mt-1">สั่ง: ${s.qty} | รับ: <span class="text-emerald-600 font-bold">${s.received || 0}</span></div>
                             <button onclick="recordItemReceive('${o.code}', '${s.size_th}')"
                                     class="w-full mt-2 text-[10px] font-semibold py-1 rounded-lg ${remain === 0 ? 'bg-stone-200 text-stone-400' : 'bg-gold-700 hover:bg-gold-800 text-white'}"
                                     ${remain === 0 ? 'disabled' : ''}>
@@ -788,6 +807,5 @@
                 input.value = '';
             }
         }
-    </script>
 </body>
 </html>
