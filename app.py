@@ -130,24 +130,88 @@ def generate_pdf(product_code: str):
         rem = max(0, qty - rec)
         total_qty += qty
         total_rec += rec
-        sizes_html += f"""
-        <tr style="border-bottom: 1px solid #E5E7EB; text-align: center;">
-            <td style="padding: 10px 8px; font-weight: 500;">ไซส์ {s.get('size_th', '-')}</td>
-            <td style="padding: 10px 8px; color: #6B7280;">{s.get('size_us', '-')}</td>
-            <td style="padding: 10px 8px; font-weight: bold;">{qty}</td>
-            <td style="padding: 10px 8px; color: #059669; font-weight: 600;">{rec}</td>
-            <td style="padding: 10px 8px; color: #D97706; font-weight: 600;">{rem}</td>
-        </tr>
-        """
+        sizes_html += (
+            "<tr style='border-bottom: 1px solid #E5E7EB; text-align: center;'>"
+            f"<td style='padding: 10px 8px; font-weight: 500;'>ไซส์ {s.get('size_th', '-')}</td>"
+            f"<td style='padding: 10px 8px; color: #6B7280;'>{s.get('size_us', '-')}</td>"
+            f"<td style='padding: 10px 8px; font-weight: bold;'>{qty}</td>"
+            f"<td style='padding: 10px 8px; color: #059669; font-weight: 600;'>{rec}</td>"
+            f"<td style='padding: 10px 8px; color: #D97706; font-weight: 600;'>{rem}</td>"
+            "</tr>"
+        )
 
-    return f"""
-    <!DOCTYPE html>
-    <html lang="th">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ใบสั่งผลิต - {order.get('code')}</title>
-        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <style>
-            body {{ font-family: 'Sarabun', sans-serif; padding: 24px; color: #1F2937; background-color: #F9FAFB; }}
-            .card {{ max-width: 700px; margin: 0 auto; background: white; border: 1
+    code = order.get("code", "-")
+    weight = order.get("weight", "-")
+    status = order.get("status", "-")
+    factory = order.get("factory", "-")
+    due_date = order.get("dueDate") or "-"
+    pending_total = max(0, total_qty - total_rec)
+
+    html_content = (
+        "<!DOCTYPE html>"
+        "<html lang='th'>"
+        "<head>"
+        "<meta charset='UTF-8'>"
+        "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
+        f"<title>ใบสั่งผลิต - {code}</title>"
+        "<link href='https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap' rel='stylesheet'>"
+        "<style>"
+        "body { font-family: 'Sarabun', sans-serif; padding: 24px; color: #1F2937; background-color: #F9FAFB; }"
+        ".card { max-width: 700px; margin: 0 auto; background: white; border: 1px solid #E5E7EB; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }"
+        ".header { border-bottom: 2px solid #8A5A12; padding-bottom: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }"
+        ".title { font-size: 22px; font-weight: 700; color: #8A5A12; }"
+        ".info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; margin-bottom: 24px; background: #FDFBF7; padding: 16px; border-radius: 12px; border: 1px solid #F7F2E7; }"
+        "table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }"
+        "th { background-color: #F3F4F6; padding: 10px 8px; border-bottom: 2px solid #E5E7EB; color: #4B5563; font-weight: 600; }"
+        ".btn-print { background-color: #8A5A12; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }"
+        ".btn-print:hover { background-color: #6D4408; }"
+        "@media print {"
+        "  .no-print { display: none !important; }"
+        "  body { padding: 0; background: white; }"
+        "  .card { border: none; box-shadow: none; padding: 0; }"
+        "}"
+        "</style>"
+        "</head>"
+        "<body>"
+        "<div class='card'>"
+        "<div class='no-print' style='margin-bottom: 20px; text-align: right;'>"
+        "<button class='btn-print' onclick='window.print()'>🖨️ พิมพ์เอกสาร / บันทึกเป็น PDF</button>"
+        "</div>"
+        "<div class='header'>"
+        "<div>"
+        "<div class='title'>ใบสั่งผลิตชิ้นงาน (Work Order)</div>"
+        "<div style='font-size: 13px; color: #6B7280; margin-top: 4px;'>โรงงานผลิตทองรูปพรรณ</div>"
+        "</div>"
+        f"<div style='text-align: right; font-size: 16px; font-weight: bold; color: #111827;'>รหัส: {code}</div>"
+        "</div>"
+        "<div class='info-grid'>"
+        f"<div><strong>น้ำหนักทองเฉลี่ย:</strong> {weight}</div>"
+        f"<div><strong>สถานะงาน:</strong> {status}</div>"
+        f"<div><strong>โรงงาน/แผนก:</strong> {factory}</div>"
+        f"<div><strong>กำหนดส่ง:</strong> {due_date}</div>"
+        "</div>"
+        "<table>"
+        "<thead>"
+        "<tr>"
+        "<th>ไซส์ (TH)</th>"
+        "<th>ไซส์ (US)</th>"
+        "<th>จำนวนสั่ง (ชิ้น)</th>"
+        "<th>รับแล้ว</th>"
+        "<th>ค้างรับ</th>"
+        "</tr>"
+        "</thead>"
+        "<tbody>"
+        f"{sizes_html}"
+        "<tr style='background-color: #FDFBF7; font-weight: bold; text-align: center; border-top: 2px solid #E5E7EB;'>"
+        "<td colspan='2' style='padding: 12px 8px; text-align: right;'>รวมทั้งหมด:</td>"
+        f"<td style='padding: 12px 8px;'>{total_qty}</td>"
+        f"<td style='padding: 12px 8px; color: #059669;'>{total_rec}</td>"
+        f"<td style='padding: 12px 8px; color: #D97706;'>{pending_total}</td>"
+        "</tr>"
+        "</tbody>"
+        "</table>"
+        "</div>"
+        "</body>"
+        "</html>"
+    )
+    return html_content
