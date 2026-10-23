@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>โรงงานผลิตทองรูปพรรณ | วางแผนการผลิต</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <script>
         tailwind.config = {
             theme: {
@@ -17,13 +14,8 @@
                     fontFamily: { sans: ['Sarabun', 'sans-serif'] },
                     colors: {
                         gold: {
-                            50: '#FDFBF7',
-                            100: '#F7F2E7',
-                            200: '#EBDDBF',
-                            500: '#B8860B',
-                            600: '#996515',
-                            700: '#8A5A12',
-                            800: '#6D4408'
+                            50: '#FDFBF7', 100: '#F7F2E7', 200: '#EBDDBF',
+                            500: '#B8860B', 600: '#996515', 700: '#8A5A12', 800: '#6D4408'
                         }
                     }
                 }
@@ -35,9 +27,6 @@
         .sidebar-active { background-color: #F7F2E7; color: #8A5A12; font-weight: 600; }
         .sidebar-inactive { color: #57534E; }
         .sidebar-inactive:hover { background-color: #F5F5F4; color: #1C1917; }
-        /* Custom scrollbar for tables */
-        ::-webkit-scrollbar { height: 6px; width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #D6D3D1; border-radius: 4px; }
     </style>
 </head>
 <body class="text-stone-800 antialiased flex flex-col md:flex-row min-h-screen">
@@ -64,7 +53,6 @@
     <!-- Sidebar Navigation -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r border-stone-200 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out md:static flex flex-col justify-between shrink-0">
         <div>
-            <!-- Logo Section -->
             <div class="p-6 border-b border-stone-100 flex items-center space-x-3">
                 <div class="w-10 h-10 rounded-xl bg-gold-100 border border-gold-200 flex items-center justify-center text-gold-700 shadow-sm">
                     <i class="fa-regular fa-gem text-xl"></i>
@@ -75,7 +63,6 @@
                 </div>
             </div>
 
-            <!-- Workspace Menu -->
             <div class="px-4 py-4">
                 <p class="text-[11px] font-semibold text-stone-400 uppercase tracking-wider px-3 mb-2">พื้นที่ทำงาน</p>
                 <nav class="space-y-1">
@@ -104,7 +91,6 @@
             </div>
         </div>
 
-        <!-- Sidebar Footer Status -->
         <div class="p-4 border-t border-stone-100">
             <div class="bg-stone-50 border border-stone-200/60 rounded-xl p-3 text-xs text-stone-600">
                 <div class="flex items-center space-x-2 text-emerald-600 font-semibold mb-1">
@@ -118,7 +104,6 @@
 
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <!-- Top Utility Header (Desktop/Tablet) -->
         <div class="hidden md:flex justify-between items-center px-8 py-4 bg-white border-b border-stone-200">
             <div class="text-xs text-stone-400 font-medium flex items-center space-x-2">
                 <span>พื้นที่ทำงาน</span>
@@ -144,7 +129,6 @@
                     <p class="text-xs md:text-sm text-stone-500 mt-1">ติดตามงานทุกขั้นตอน ตั้งแต่สั่งผลิตจนถึงรับสินค้า</p>
                 </div>
 
-                <!-- KPI Metric Cards -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                     <div class="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col justify-between">
                         <div class="flex justify-between items-start text-stone-400">
@@ -188,7 +172,6 @@
                     </div>
                 </div>
 
-                <!-- Progress & Tasks Section -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm">
                         <h3 class="text-sm font-bold text-stone-900 mb-1">ความคืบหน้าการผลิต</h3>
@@ -224,7 +207,6 @@
                     </div>
                 </div>
 
-                <!-- Recent Orders Tracker Table -->
                 <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
                     <div class="p-4 md:p-5 border-b border-stone-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
                         <div>
@@ -251,7 +233,7 @@
                             </thead>
                             <tbody id="ordersTableBody" class="divide-y divide-stone-100 text-stone-700">
                                 <tr>
-                                    <td colspan="8" class="p-8 text-center text-stone-400">ยังไม่มีรายการสั่งผลิต กดปุ่ม "สร้างใบสั่งผลิต" เพื่อเริ่มต้น</td>
+                                    <td colspan="8" class="p-8 text-center text-stone-400">ยังไม่มีรายการสั่งผลิต</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -270,10 +252,7 @@
                         + สร้างใบสั่งผลิต
                     </button>
                 </div>
-
-                <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 md:p-6" id="ordersListDetailContainer">
-                    <!-- Populated dynamically -->
-                </div>
+                <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 md:p-6" id="ordersListDetailContainer"></div>
             </section>
 
             <!-- 3. PRODUCTS MANAGEMENT VIEW -->
@@ -292,15 +271,6 @@
                         <p class="text-3xl font-bold text-stone-800 mt-2">7 ประเภท</p>
                     </div>
                 </div>
-                <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-5">
-                    <h3 class="text-sm font-bold text-stone-900 mb-3">ทะเบียนสินค้าหลัก</h3>
-                    <ul class="text-xs text-stone-600 divide-y divide-stone-100">
-                        <li class="py-2.5 flex justify-between items-center">
-                            <span>แหวนทองคำแท้ (มาตรฐาน TH / US)</span>
-                            <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md font-medium text-[11px]">เปิดใช้งาน</span>
-                        </li>
-                    </ul>
-                </div>
             </section>
 
             <!-- 4. FACTORIES VIEW -->
@@ -315,7 +285,6 @@
                         <button onclick="addFactory()" class="bg-gold-700 text-white text-xs px-4 py-2 rounded-xl font-medium">+ เพิ่มโรงงาน</button>
                     </div>
                     <div class="mt-4" id="factoriesList">
-                        <!-- Default factories -->
                         <span class="inline-block bg-stone-100 text-stone-700 text-xs px-3 py-1.5 rounded-lg mr-2 mb-2">โรงงานช่างทอง 1</span>
                     </div>
                 </div>
@@ -339,9 +308,7 @@
                     <h2 class="text-xl md:text-2xl font-bold text-stone-900">รับสินค้าสำเร็จ</h2>
                     <p class="text-xs md:text-sm text-stone-500 mt-1">รับสินค้าทีละไซส์ บันทึกได้หลายครั้งต่อใบสั่ง</p>
                 </div>
-                <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 md:p-6" id="receiveViewContainer">
-                    <!-- Populated dynamically -->
-                </div>
+                <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 md:p-6" id="receiveViewContainer"></div>
             </section>
 
             <!-- 7. REPORTS VIEW -->
@@ -412,7 +379,6 @@
                     </div>
                 </div>
 
-                <!-- Sizes Matrix Table -->
                 <div class="border border-stone-200 rounded-2xl overflow-hidden mt-2">
                     <div class="bg-stone-50 px-4 py-2 border-b border-stone-200 flex justify-between items-center">
                         <span class="text-xs font-bold text-stone-700">รายการไซส์แหวน (TH / US)</span>
@@ -427,9 +393,7 @@
                                     <th class="p-2 w-32">จำนวนสั่ง (ชิ้น)</th>
                                 </tr>
                             </thead>
-                            <tbody id="sizeInputsTbody" class="divide-y divide-stone-100">
-                                <!-- Populated dynamically with empty inputs -->
-                            </tbody>
+                            <tbody id="sizeInputsTbody" class="divide-y divide-stone-100"></tbody>
                         </table>
                     </div>
                 </div>
@@ -446,7 +410,6 @@
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Default standard jewelry ring sizes
         const ringSizesDefinition = [
             { th: "47", us: "4.5" }, { th: "48", us: "4.5" },
             { th: "49", us: "5" },   { th: "50", us: "5.5" },
@@ -458,21 +421,22 @@
             { th: "61", us: "9.5" }
         ];
 
-        // ตัวแปรเก็บข้อมูลส่วนกลาง
         let orders = [];
 
-        // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
         window.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
             const dateStr = today.toLocaleDateString('th-TH', { year: '2-digit', month: 'short', day: 'numeric' });
-            document.getElementById('currentDateDisplay').innerText = `• ${dateStr}`;
-            document.getElementById('due_date').value = today.toISOString().split('T')[0];
+            const dateElem = document.getElementById('currentDateDisplay');
+            if (dateElem) dateElem.innerText = `• ${dateStr}`;
+            
+            const dueElem = document.getElementById('due_date');
+            if (dueElem) dueElem.value = today.toISOString().split('T')[0];
+
             initSizeInputs();
-            fetchOrdersFromServer(); // ดึงข้อมูลทันทีเมื่อเปิดเว็บ
-            setInterval(fetchOrdersFromServer, 5000); // ดึงอัปเดตอัตโนมัติทุก 5 วินาที
+            fetchOrdersFromServer();
+            setInterval(fetchOrdersFromServer, 5000);
         });
 
-        // ฟังก์ชันดึงข้อมูลจาก Server ส่วนกลาง
         async function fetchOrdersFromServer() {
             try {
                 const res = await fetch('/api/orders');
@@ -514,7 +478,7 @@
 
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            if (!sidebar.classList.contains('-translate-x-full')) {
+            if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
                 sidebar.classList.add('-translate-x-full');
                 overlay.classList.add('hidden');
             }
@@ -530,6 +494,7 @@
 
         function initSizeInputs() {
             const tbody = document.getElementById('sizeInputsTbody');
+            if (!tbody) return;
             tbody.innerHTML = '';
             ringSizesDefinition.forEach(s => {
                 const tr = document.createElement('tr');
@@ -551,11 +516,11 @@
             document.querySelectorAll('.modal-qty-input').forEach(input => {
                 total += parseInt(input.value) || 0;
             });
-            document.getElementById('modalTotalQtyDisplay').innerText = `รวม: ${total} ชิ้น`;
+            const disp = document.getElementById('modalTotalQtyDisplay');
+            if (disp) disp.innerText = `รวม: ${total} ชิ้น`;
             return total;
         }
 
-        // ส่งคำสั่งผลิตไปที่ Server กลาง
         async function handleCreateOrder(e) {
             e.preventDefault();
             const pCode = document.getElementById('product_code').value.trim();
@@ -599,22 +564,21 @@
                 });
 
                 if (res.ok) {
-                    alert('บันทึกคำสั่งผลิตเข้าสู่ระบบกลางเรียบร้อยแล้ว');
+                    alert('บันทึกคำสั่งผลิตสำเร็จ');
                     document.getElementById('orderForm').reset();
                     initSizeInputs();
                     calcModalTotal();
                     closeCreateOrderModal();
-                    await fetchOrdersFromServer(); // โหลดข้อมูลใหม่ทันที
+                    await fetchOrdersFromServer();
                     switchTab('overview');
                 } else {
-                    alert('เกิดข้อผิดพลาดในการบันทึกคำสั่งผลิต');
+                    alert('บันทึกไม่สำเร็จ ตรวจสอบเซิร์ฟเวอร์');
                 }
             } catch (err) {
-                alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
             }
         }
 
-        // รับชิ้นงานและบันทึกขึ้นระบบกลาง
         async function recordItemReceive(orderCode, sizeTh) {
             const order = orders.find(o => o.code === orderCode);
             if (!order) return;
@@ -671,22 +635,35 @@
             const pending = totalOrdered - totalReceived;
             const pct = totalOrdered > 0 ? Math.round((totalReceived / totalOrdered) * 100) : 0;
 
-            document.getElementById('kpi-approved-qty').innerHTML = `${totalOrdered} <span class="text-xs font-normal text-stone-500">ชิ้น</span>`;
-            document.getElementById('kpi-orders-count').innerText = `${orders.length} ใบสั่งผลิต`;
-            document.getElementById('kpi-received-qty').innerHTML = `${totalReceived} <span class="text-xs font-normal text-stone-500">ชิ้น</span>`;
-            document.getElementById('kpi-complete-orders').innerText = `${completeCount} ใบสั่งรับครบแล้ว`;
-            document.getElementById('kpi-pending-qty').innerHTML = `${pending} <span class="text-xs font-normal text-stone-500">ชิ้น</span>`;
-            document.getElementById('overview-percent').innerText = `${pct}%`;
-            document.getElementById('prog-rec-text').innerText = `${totalReceived} ชิ้น`;
-            document.getElementById('prog-pend-text').innerText = `${pending} ชิ้น`;
+            const appQty = document.getElementById('kpi-approved-qty');
+            if (appQty) appQty.innerHTML = `${totalOrdered} <span class="text-xs font-normal text-stone-500">ชิ้น</span>`;
+            const ordCount = document.getElementById('kpi-orders-count');
+            if (ordCount) ordCount.innerText = `${orders.length} ใบสั่งผลิต`;
+            const recQty = document.getElementById('kpi-received-qty');
+            if (recQty) recQty.innerHTML = `${totalReceived} <span class="text-xs font-normal text-stone-500">ชิ้น</span>`;
+            const compCount = document.getElementById('kpi-complete-orders');
+            if (compCount) compCount.innerText = `${completeCount} ใบสั่งรับครบแล้ว`;
+            const pendQty = document.getElementById('kpi-pending-qty');
+            if (pendQty) pendQty.innerHTML = `${pending} <span class="text-xs font-normal text-stone-500">ชิ้น</span>`;
+            
+            const pctElem = document.getElementById('overview-percent');
+            if (pctElem) pctElem.innerText = `${pct}%`;
+            const progRec = document.getElementById('prog-rec-text');
+            if (progRec) progRec.innerText = `${totalReceived} ชิ้น`;
+            const progPend = document.getElementById('prog-pend-text');
+            if (progPend) progPend.innerText = `${pending} ชิ้น`;
 
-            document.getElementById('rep-rec').innerText = `${totalReceived} ชิ้น`;
-            document.getElementById('rep-weight').innerText = `${(totalReceived * 1.0).toFixed(2)} กรัม`;
+            const repRec = document.getElementById('rep-rec');
+            if (repRec) repRec.innerText = `${totalReceived} ชิ้น`;
+            const repWeight = document.getElementById('rep-weight');
+            if (repWeight) repWeight.innerText = `${(totalReceived * 1.0).toFixed(2)} กรัม`;
         }
 
         function renderOrdersTable() {
             const tbody = document.getElementById('ordersTableBody');
-            const search = document.getElementById('orderSearchInput').value.toLowerCase();
+            if (!tbody) return;
+            const searchInput = document.getElementById('orderSearchInput');
+            const search = searchInput ? searchInput.value.toLowerCase() : '';
             const filtered = orders.filter(o => o.code.toLowerCase().includes(search));
 
             if (filtered.length === 0) {
@@ -726,6 +703,7 @@
 
         function renderReceiveView() {
             const container = document.getElementById('receiveViewContainer');
+            if (!container) return;
             if (orders.length === 0) {
                 container.innerHTML = `<p class="text-xs text-stone-400 text-center py-8">ไม่มีรายการที่ต้องรับสินค้า</p>`;
                 return;
@@ -767,6 +745,7 @@
 
         function renderOrdersDetailView() {
             const container = document.getElementById('ordersListDetailContainer');
+            if (!container) return;
             if (orders.length === 0) {
                 container.innerHTML = `<p class="text-xs text-stone-400 text-center py-8">ไม่มีข้อมูลใบสั่งผลิต</p>`;
                 return;
@@ -807,5 +786,6 @@
                 input.value = '';
             }
         }
+    </script>
 </body>
 </html>
