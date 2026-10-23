@@ -254,7 +254,7 @@
       if (imageFile) formData.append("image_file", imageFile);
 
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/orders/create", { method: "POST", body: formData });
+        const res = await fetch("/api/orders/create", { method: "POST", body: formData });
         if (res.ok) {
           currentOrder = { code: productCode, weight: weightDesc, orderDate, dueDate, items };
           alert("บันทึกคำสั่งงานเรียบร้อยแล้ว!");
@@ -325,7 +325,7 @@
 
     function downloadPDF() {
       if (!currentOrder) return alert("ไม่มีข้อมูลคำสั่งงาน");
-      window.open(`http://127.0.0.1:8000/api/orders/${encodeURIComponent(currentOrder.code)}/pdf`, '_blank');
+      window.open("/api/orders/"+encodeURIComponent(currentOrder.code)}/pdf`, '_blank');
     }
   </script>
 </body>
